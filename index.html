@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="us">
+<head>
+	<meta charset="utf-8">
+	<title>Draw Code</title>
+	<link href="css/ui-lightness/jquery-ui-1.10.1.custom.css" rel="stylesheet">
+	<script src="js/jquery-1.9.1.js"></script>
+	<script src="js/jquery-ui-1.10.1.custom.js"></script>
+	<script type="text/javascript" src="js/gridBuilder.js"></script>
+
+	<link href="index.css" rel="stylesheet">
+
+	<script>
+	$(function() {
+		var newid=1;
+		var objectsX= new Array();
+		var isDragging=false;
+		var CurrentActive=null;
+
+		function SelectionBorder(element,ShowBorder)
+		{
+			if ((ShowBorder) && (CurrentActive!=element)) {
+
+				if (CurrentActive!=null)
+				{
+					CurrentActive.find(".SelectionNode").hide();
+					$("#selectionborder").hide();
+				}
+
+				var ScTop = $("#designscroller").scrollTop();
+				var ScLeft = $("#designscroller").scrollLeft();
+
+				var x1 = ScLeft + element.position().left - 2;
+				var x2 = element.outerWidth()-2;
+				var y1 = ScTop  + element.position().top - 2;
+				var y2 = element.outerHeight()-2;
+				$("#selectionborder").css({'left': x1+'px' , 'top': y1+'px' , 'width': x2+'px' , 'height': y2+'px' });
+				$("#selectionborder").css('border', '3px solid');
+				$("#selectionborder").css('border-radius', '6px');
+				$("#selectionborder").css({"-webkit-animation": "pulsate 2s ease-in-out", "-webkit-animation-iteration-count" : "infinite" });
+
+				$("#selectionborder").fadeIn('slow');
+
+				element.find(".SelectionNode").show();
+
+				CurrentActive = element;
+
+			} else
+			{
+				CurrentActive.find(".SelectionNode").hide();
+				CurrentActive = null;
+				$("#selectionborder").hide();
+
+			}
+		}
+
+
+
+
+
+
+
+
+
+		
+
+
+
+
+		$( "#red-label" ).draggable(   {	grid: [ 5,5 ], helper: function() { return $("<div style='cursor:pointer; width:102px; height:102px; border-radius: 6px; background:#999; opacity:0.5; border:1px solid black; z-index:20'></div>"); }, revert: 'invalid'	});
+		$( "#black-label" ).draggable( {	grid: [ 5,5 ], helper: function() { return $("<div style='cursor:pointer; width:122px; height:122px; border-radius: 6px; background:#999; opacity:0.5; border:1px solid black; z-index:20'></div>"); }, revert: 'invalid'	});
+		$( "#green-label" ).draggable( {	grid: [ 5,5 ], helper: function() { return $("<div style='cursor:pointer; width:142px; height:142px; border-radius: 6px; background:#999; opacity:0.5; border:1px solid black; z-index:20'></div>"); }, revert: 'invalid'	});
+
+
+			/*
+		$( "#black-label" ).click( function() {
+			newid++;
+			$("#designspace").append($("<div></div>").dclabel({id:newid,top:100,left:100,width:60,height:60,color:"black",text:"<center><font color=white>Black Label"}));
+
+		});
+
+
+		$( "#green-label" ).click( function() {
+			newid++;
+			$("#designspace").append($("<div></div>").dclabel({id:newid,top:100,left:100,width:100,height:100,color:"green",text:"<center><font color=silver>Green Label"}));
+
+		});
+		*/
+
+		$("#designspace").click( function() { SelectionBorder(null,false);  });
+
+		$("#designspace").gridBuilder({
+			color:          '#bbb',    // color of the primary gridlines
+			secondaryColor: '#ccc', // color of the secondary gridlines
+			vertical:       10,        // height of the vertical rhythm
+			horizontal:     10,       // width of horizontal strokes
+			gutter:         0,        // width of the gutter between strokes
+		});
+
+
+		$("#designspace").droppable({
+			tolerance: 'fit',
+
+			drop : function(event,ui)
+			{
+				var id = ui.draggable.attr('id');
+				var newPosX = ui.offset.left - $(this).offset().left;
+				var newPosY = ui.offset.top - $(this).offset().top;
+//				console.log(id);
+//				console.log(newPosX+" "+newPosY);
+
+				if (id == "red-label")
+				{
+					$(ui.draggable).draggable('option','revert','invalid');
+					newid++;
+					$("#designspace").append($("<div></div>").dclabel({id:newid,top:newPosY,left:newPosX,width:60,height:60,color:"red",text:"<center>Red Label<br>"}));
+				}
+
+				if (id == "black-label")
+				{
+					$(ui.draggable).draggable('option','revert','invalid');
+					newid++;
+					$("#designspace").append($("<div></div>").dclabel({id:newid,top:newPosY,left:newPosX,width:80,height:80,color:"black",text:"<center><font color=white>Black Label<br>"}));
+				}
+
+				if (id == "green-label")
+				{
+					$(ui.draggable).draggable('option','revert','invalid');
+					newid++;
+					$("#designspace").append($("<div></div>").dclabel({id:newid,top:newPosY,left:newPosX,width:100,height:100,color:"green",text:"<center><font color=silver>Green Label<br>"}));
+				}
+
+			}
+		});
+
+
+
+		$.widget('dc.dclabel', {
+			options: {},
+
+			_create: function () {
+				//this.element.addClass('xlabel');
+
+//				newid = newid ? newid + 1 : 1;
+				this.instanceID = newid;
+
+				this.element.attr('id',"element_"+newid);
+				this.element.addClass('small2');
+				this.element.addClass('FormElement');
+				this.element.css('border', '1px solid black');
+				this.element.css('position', 'absolute');
+				this.element.css('z-index', '10');
+
+
+				this._setOptions({
+					'top': this.options.top,
+					'left': this.options.left,
+					'width': this.options.width,
+					'height': this.options.height,
+					'color': this.options.color,
+					'text': this.options.text
+				});
+
+
+				var node1div =  $("<div id='node1' class='SelectionNode' style='top:15px; left:-10px;'></div>");
+				this.element.append(node1div);
+
+				var node2div =  $("<div id='node2' class='SelectionNode' style='top:15px; left:"+ (this.element.outerWidth()-10) +"px;'></div>");
+				this.element.append(node2div);
+
+//				var node3div =  $("<div id='node3' class='SelectionNode' style='top:"+ (this.element.outerHeight()-30) +"px; left:"+ (this.element.outerWidth()-10) +"px;'></div>");
+//				this.element.append(node3div);
+
+
+				var ThisLast = this.element; setTimeout(function() {
+												SelectionBorder(ThisLast,true);
+											}, 100);
+
+//				this.element.hover( function() { $(this).css('opacity', '0.8'); },function() { $(this).css('opacity', '1.0'); } );
+
+				this.element.click( function() {
+					if (!isDragging)
+					{
+						SelectionBorder($(this),true);
+					}
+					return false;
+				});
+
+				this.element.bind( "dragstart", function(event, ui) {
+					//console.log($(this).offset().top);
+					//console.log($(this).position().top);
+					//console.log($("#designscroller").scrollTop() );
+					SelectionBorder($(this),false);
+					ui.originalPosition.top = $("#designscroller").scrollTop()+$(this).position().top;
+					ui.originalPosition.left = $("#designscroller").scrollLeft()+$(this).position().left;
+				});
+
+				this.element.resizable({
+					grid: [ 5,5 ],
+					animate: true,
+
+					handles: "all",
+					animateEasing: "easeInOutExpo",
+					autoHide: true,
+					helper: "ui-resizable-helper",
+					start: function() { SelectionBorder($(this),false); },
+					stop: function() { var ThisLast = $(this); setTimeout(function() { SelectionBorder(ThisLast,true);  }, 1000)  },
+					resize: function( event, ui ) {
+
+
+
+						//loop through all elements check overlap
+						//console.log(ui.size.width);
+						//console.log(ui);
+						var originalElement = $(this);
+						var ScTop = $("#designscroller").scrollTop();
+						var ScLeft = $("#designscroller").scrollLeft();
+
+						var x1_1 = ScLeft + ui.position.left;
+						var x2_1 = ScLeft + ui.position.left + ui.size.width;
+						var y1_1 = ScTop  + ui.position.top;
+						var y2_1 = ScTop  + ui.position.top + ui.size.height;
+						var xOverlap = false;
+
+						$('#designspace').children(".FormElement").each(function(idx,itm) {
+							//test
+
+							if ( $(itm).attr("id") != originalElement.attr("id") )
+							{
+								var x1_2 = ScLeft + $(itm).offset().left;
+								var x2_2 = ScLeft + $(itm).offset().left + $(itm).width();
+								var y1_2 = ScTop  + $(itm).offset().top;
+								var y2_2 = ScTop  + $(itm).offset().top + $(itm).height();
+
+								console.log( x1_1+" "+x2_1+" "+y1_1+" "+y2_1 );
+								console.log( x1_2+" "+x2_2+" "+y1_2+" "+y2_2 );
+
+								if (x1_1 < x2_2 && x2_1 > x1_2 && y1_1 < y2_2 && y2_1 > y1_2) { xOverlap = true; }
+								//console.log($(itm).attr("id")+" "+originalElement.attr("id"));
+							}
+						});
+
+						if (xOverlap) { ui.size.width = ui.originalSize.width; ui.size.height = ui.originalSize.height; }
+					}
+				});
+
+				this.element.draggable({
+					grid: [ 5,5 ],
+					containment: "#designspace",
+					cursor: "move",
+					revert: 'invalid',
+					stack: "#designspace div",
+					start: function() {
+						isDragging=true;
+						$(this).css('opacity', '0.5');
+					},
+					stop: function(){
+						isDragging=false;
+						//$(this)._originalPosition = this._originalPosition || ui.originalPosition;
+						//ui.helper.animate( $(this)._originalPosition );
+						$(this).draggable('option','revert','invalid');
+						$(this).css('opacity', '1.0');
+						SelectionBorder($(this),true);
+					},
+					drag: function() {
+					}
+				});
+
+				this.element.droppable({
+					greedy: true,
+					tolerance: 'touch',
+					drop: function(event,ui){
+						console.log("revert");
+						ui.draggable.draggable('option','revert',true);
+					}
+				});
+
+
+				//this.labelx = $("<div style='width:10px; height:10px; left:100px; top:100px; border: solid 1px blue;'>HA</div>");
+			},
+
+			_destroy: function () {
+				this.element.removeClass('xlabel');
+				this.element.empty();
+			},
+
+			_setOption: function (key, value) {
+				var self = this,
+				prev = this.options[key],
+				fnMap = {
+					'top': function () {
+						self.element.css('top', value + 'px');
+					},
+					'left': function () {
+						self.element.css('left', value + 'px');
+					},
+					'width': function () {
+						self.element.css('width', value + 'px');
+					},
+					'height': function () {
+						self.element.css('height', value + 'px');
+					},
+					'color': function () {
+						self.element.css('background-color', value );
+					},
+					'text': function () {
+						self.element.append(value+" "+newid);
+					}
+				};
+
+				// base
+				this._super(key, value);
+
+				if (key in fnMap) {
+					fnMap[key]();
+					// Fire event
+					this._triggerOptionChanged(key, prev, value);
+				}
+			},
+
+			 _triggerOptionChanged: function (optionKey, previousValue, currentValue) {
+				this._trigger('setOption', {type: 'setOption'}, {
+					option: optionKey,
+					previous: previousValue,
+					current: currentValue
+				});
+			}
+		});
+
+
+	});
+
+
+	</script>
+
+</head>
+<body>
+	<div id="editor" class="editor-window">
+
+	<div id="toolbar" class="tool-window" >
+
+		<div id="red-label" style="cursor:pointer; background-color:red; z-index:20" class="iphone small"></div>
+		<div id="black-label" style="cursor:pointer; background-color:black; z-index:20" class="iphone small"></div>
+		<div id="green-label" style="cursor:pointer; background-color:green; z-index:20" class="iphone small"></div>
+
+	</div>
+
+	<div id="designscroller" style="border: 1px solid #888888; left:180px; width:1040px; height:800px; overflow:scroll; position:absolute;">
+		<div id="designspace" style="background-color:silver; width:1800px; height:1800px">
+			<div id="selectionborder" style="display:none; position:absolute; z-index:5"></div>
+		</div>
+	</div>
+
+</body>
+</html>
+
+
